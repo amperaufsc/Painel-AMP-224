@@ -27,6 +27,8 @@ int period = 100; // tempo entre envio de dados para o display
 unsigned long time_now = 0; // variavel para controle de envio de dados para o display
 bool display_lock = false; // false: pode mudar a página, true: nao pode mudar a página
 bool botao = false;
+bool ebs = false;
+bool fault_dl = 0;
 
 //Declaracao RTC
 uint8_t month = 0;
@@ -242,6 +244,12 @@ void Task3code (void * pvParameters)
     case 0x0BF:
       fault_ecu = (message1.data[3] << (8) | message1.data[2]);
       Serial.println("ok");
+    case 0x011:
+      ebs = message1.data[0];
+      if (ebs = true){Serial.println("EBS");}
+    case 0x014:
+      fault_dl = message1.data[0];
+      if (fault_dl = true){Serial.println("FAULT DLESS");}
     default:
       break;}
     
