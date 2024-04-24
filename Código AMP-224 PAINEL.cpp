@@ -99,31 +99,31 @@ void Task1code( void * pvParameters ) //task do seletor
       {
         myNex.writeStr("page page0");
         CurrentForm = 0;
-        //Serial.print("page0");
+        Serial.print("page0");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 1)
       {
         myNex.writeStr("page page1");
         CurrentForm = 1;
-        //Serial.print("page1");
+        Serial.print("page1");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 2)
       {
         myNex.writeStr("page page2");
         CurrentForm = 2;
-        //Serial.print("page2");
+        Serial.print("page2");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 3)
       {
         myNex.writeStr("page page3");
         CurrentForm = 3;
-        //Serial.print("page3");
+        Serial.print("page3");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 4)
       {
         myNex.writeStr("page page4");
         CurrentForm = 4;
-        //Serial.print("page4");
+        Serial.print("page4");
       }
       display_lock = true;
     }
@@ -159,6 +159,7 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
+          Serial.println(sec);
         break;
         case 1: //Testes
           vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -214,13 +215,18 @@ void Task3code (void * pvParameters)
   can_receive(&message1, pdMS_TO_TICKS(10));
     switch (message1.identifier)
     {    
-      case 0x0A0:
+    case 0x0B0:
         fault_inv = message1.data[0];
-        inversorVoltage = message1.data[1];
-        motorTemp = message1.data[2];
-        apps = (message1.data[3]);
-        speed = (message1.data[4]);
+        fault_ecu = (message1.data[2] << (8) | message1.data[1]);
         Serial.println("JESUS");
+      break;
+    case 0x0B1:
+        motorTemp = (message1.data[3] << 8 | message1.data[2]);
+      break;
+    case 0x0B2:
+        inversorVoltage = (message1.data[2] << 8 | message1.data[1]);
+        apps = message1.data[5];
+        speed = (message1.data[4] << 8 | message1.data[3]);
       break;
     case 0x672:
         fault_bms = message1.data[4];
@@ -238,18 +244,16 @@ void Task3code (void * pvParameters)
     case 0x677:
         accumulatorTemp = message1.data[0];
       break;
-    case 0x0BF:
-      fault_ecu = (message1.data[3] << (8) | message1.data[2]);
-      Serial.println("ok");
     case 0x011:
       ebs = message1.data[0];
       if (ebs = true){
-          EBS_PIN == HIGH;
+          digitalWrite(EBS_PIN, HIGH);
         }
+      break;
     case 0x014:
       fault_dl = message1.data[0];
       if (fault_dl = true){
-          FAULT_DL_PIN == HIGH;
+          digitalWrite(FAULT_DL_PIN, HIGH);
         }
     default:
       break;}
@@ -276,15 +280,20 @@ void IRAM_ATTR selector_change(){
   portENTER_CRITICAL_ISR(&selectorMux);
   //A chave seletora envia nível baixo na posição atual
     if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(digitalRead(SELECTOR_PIN_4))&&(SelectorPosition == 1)){
-      SelectorPosition = 0;}
+      SelectorPosition = 0;
+      Serial.println(SelectorPosition);}
     if (digitalRead(SELECTOR_PIN_1) == 0){
-      SelectorPosition = 1;}
+      SelectorPosition = 1;
+      Serial.println(SelectorPosition);}
     if (digitalRead(SELECTOR_PIN_2) == 0){
-      SelectorPosition = 2;}
+      SelectorPosition = 2;
+      Serial.println(SelectorPosition);}
     if (digitalRead(SELECTOR_PIN_3) == 0){
-      SelectorPosition = 3;}
+      SelectorPosition = 3;
+      Serial.println(SelectorPosition);}
     if (digitalRead(SELECTOR_PIN_4) == 0){
-      SelectorPosition = 4;}
+      SelectorPosition = 4;
+      Serial.println(SelectorPosition);}
     display_lock = false; // lock the display from changing pages
   portEXIT_CRITICAL_ISR(&selectorMux);
 }
