@@ -194,7 +194,7 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n6.val", speed); //Velocidade
-          power = accumulatorCurrent * inversorVoltage;
+          power = (accumulatorCurrent * inversorVoltage)/1000;
           myNex.writeNum("n7.val", power); //Potência dos motores
         break;
         case 3: //Enduro
