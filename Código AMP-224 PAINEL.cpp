@@ -30,7 +30,7 @@ portMUX_TYPE selectorMux = portMUX_INITIALIZER_UNLOCKED;
 
 
 //Declaração das variáveis
-uint16_t power = 0, SelectorPosition, lastPosition = 0, accumulatorTemp, apps = 0, RTD, REGEN = 0, GPS, motorTemp, lowVoltage, StateofCharge, fault_bms, fault_inv, fault_ecu, inversorVoltage, RPM;
+uint16_t power = 0, SelectorPosition, bse = 0, lastPosition = 0, accumulatorTemp, apps = 0, RTD, REGEN = 0, GPS, motorTemp, lowVoltage, StateofCharge, fault_bms, fault_inv, fault_ecu, inversorVoltage, RPM;
 float speed = 0, highVoltage; // revisao das variaveis a serem mostradas
 long double accumulatorCurrent;
 int CurrentForm = 0; // variavel para controle da página atual
@@ -40,6 +40,7 @@ bool display_lock = false; // false: pode mudar a página, true: nao pode mudar 
 bool botao = false; // rtd eh inicialmente low
 bool ebs = false; // ebs manda booleana
 bool fault_dl = false; // emergencia manda booleana
+uint16_t map_speed, map_rpm;
 
 #define REGEN_PIN GPIO_NUM_15
 portMUX_TYPE REGENbutton = portMUX_INITIALIZER_UNLOCKED;
@@ -179,18 +180,31 @@ void Task2code( void * pvParameters )
           myNex.writeNum("n6.val", highVoltage); //Tensão
           myNex.writeNum("n7.val", inversorVoltage); //Tensão Inversão
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
+          if (fault_bms != 0) {
+            myNex.writeNum("n8.pco", 63488);
+          }
           myNex.writeNum("n9.val", motorTemp); //temperatura Motores
           myNex.writeNum("n10.val", accumulatorTemp); //Temperatura Acumulador
+          if (accumulatorTemp > 60) {
+            myNex.writeNum("n10.pco", 63488);
+          }
           myNex.writeNum("n11.val", fault_inv); //Erro Inversor
+          if (fault_inv != 0) {
+            myNex.writeNum("n11.pco", 63488);
+          }
           myNex.writeNum("n12.val", accumulatorCurrent); //Corrente Acumulador
           myNex.writeNum("n13.val", StateofCharge); //SOC
-          myNex.writeNum("n14.val", fault_ecu); //Erro ECU
+          if (StateofCharge < 20) {
+            myNex.writeNum("n13.pco", 63488);
+          }
           if (digitalRead(REGEN_PIN)==HIGH) {
             myNex.writeNum("n13.pco", 2016);
-            myNex.writeNum("t7.pco", 2016);
           //Se pressionar o botão SoC fica verde
           }
-          
+          myNex.writeNum("n14.val", fault_ecu); //Erro ECU
+          if (fault_ecu > 60) {
+            myNex.writeNum("n14.pco", 63488);
+          }
         break;
         case 2: //Provas Curtas
           vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -200,9 +214,14 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n6.val", speed); //Velocidade
-          power = (accumulatorCurrent * inversorVoltage)/1000;
-          myNex.writeNum("n7.val", power); //Potência dos motores
-          myNex.writeNum("n8.val", RPM);//rpm motor
+          map_speed = map(speed, 0, 100, 315, 225);
+          myNex.writeNum("z0.val", map_speed);
+          myNex.writeNum("n7.val", RPM);//rpm motor
+          map_rpm = map(RPM, 0, 6000, 315, 225);
+          myNex.writeNum("z1.val", map_rpm);
+          myNex.writeNum("j1.val", bse);
+          myNex.writeNum("j0.val", apps);
+
         break;
         case 3: //Enduro
           vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -212,11 +231,18 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n6.val", speed); //Velocidade
+          map_speed = map(speed, 0, 100, 315, 225);
+          myNex.writeNum("z1.val", map_speed);
           myNex.writeNum("n7.val", accumulatorTemp); //Temperatura Acumulador
+          if (accumulatorTemp > 60) {
+            myNex.writeNum("n7.pco", 63488);
+          }
           myNex.writeNum("n8.val", StateofCharge); //SoC
+          if (StateofCharge < 20) {
+            myNex.writeNum("n8.pco", 63488);
+          }
           if (digitalRead(REGEN_PIN)==HIGH) {
             myNex.writeNum("n8.pco", 2016);
-            myNex.writeNum("t2.pco", 2016);
           //Se pressionar o botão SoC fica verde
           }
         default:
@@ -248,6 +274,7 @@ void Task3code (void * pvParameters)
     case 0x0B2:
         inversorVoltage = (message1.data[2] << 8 | message1.data[1])/100;
         apps = message1.data[5];
+        bse = message1.data[6];
         speed = (message1.data[4] << 8 | message1.data[3])*(3.6/100);
       break;
     case 0x672:
