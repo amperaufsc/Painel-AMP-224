@@ -180,31 +180,47 @@ void Task2code( void * pvParameters )
           myNex.writeNum("n6.val", highVoltage); //Tensão
           myNex.writeNum("n7.val", inversorVoltage); //Tensão Inversão
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
-          if (fault_bms != 0) {
+            if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
-          }
+            }
+            else {
+            myNex.writeNum("n8.pco", 24122);
+            }
           myNex.writeNum("n9.val", motorTemp); //temperatura Motores
           myNex.writeNum("n10.val", accumulatorTemp); //Temperatura Acumulador
-          if (accumulatorTemp > 60) {
-            myNex.writeNum("n10.pco", 63488);
-          }
+            if (accumulatorTemp > 60) {
+              myNex.writeNum("n10.pco", 63488);
+            }
+            else {
+              myNex.writeNum("n10.pco", 24122);
+            }
           myNex.writeNum("n11.val", fault_inv); //Erro Inversor
-          if (fault_inv != 0) {
+            if (fault_inv != 0) {
             myNex.writeNum("n11.pco", 63488);
-          }
+            }
+            else{
+              myNex.writeNum("n11.pco", 24122);
+            }
           myNex.writeNum("n12.val", accumulatorCurrent); //Corrente Acumulador
           myNex.writeNum("n13.val", StateofCharge); //SOC
-          if (StateofCharge < 20) {
-            myNex.writeNum("n13.pco", 63488);
-          }
-          if (digitalRead(REGEN_PIN)==HIGH) {
-            myNex.writeNum("n13.pco", 2016);
-          //Se pressionar o botão SoC fica verde
-          }
+            if (StateofCharge < 20) {
+              myNex.writeNum("n13.pco", 63488);
+            }
+            else{
+              if (digitalRead(REGEN_PIN)==HIGH) {
+                myNex.writeNum("n13.pco", 2016);
+              }
+              else{
+                myNex.writeNum("n13.pco", 24122);
+              }
+            }
           myNex.writeNum("n14.val", fault_ecu); //Erro ECU
-          if (fault_ecu > 60) {
-            myNex.writeNum("n14.pco", 63488);
-          }
+            if (fault_ecu > 60) {
+              myNex.writeNum("n14.pco", 63488);
+            }
+            else{
+              myNex.writeNum("n14.pco", 24122);
+            }
         break;
         case 2: //Provas Curtas
           vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -235,16 +251,23 @@ void Task2code( void * pvParameters )
           myNex.writeNum("z1.val", map_speed);
           myNex.writeNum("n7.val", accumulatorTemp); //Temperatura Acumulador
           if (accumulatorTemp > 60) {
-            myNex.writeNum("n7.pco", 63488);
-          }
+              myNex.writeNum("n7.pco", 63488);
+            }
+            else {
+              myNex.writeNum("n7.pco", 24122);
+            }
           myNex.writeNum("n8.val", StateofCharge); //SoC
-          if (StateofCharge < 20) {
-            myNex.writeNum("n8.pco", 63488);
-          }
-          if (digitalRead(REGEN_PIN)==HIGH) {
-            myNex.writeNum("n8.pco", 2016);
-          //Se pressionar o botão SoC fica verde
-          }
+           if (StateofCharge < 20) {
+              myNex.writeNum("n8.pco", 63488);
+            }
+            else{
+              if (digitalRead(REGEN_PIN)==HIGH) {
+                myNex.writeNum("n8.pco", 2016);
+              }
+              else{
+                myNex.writeNum("n8.pco", 24122);
+              }
+            }
         default:
         break; // tirei o do encoder, add RTC
       }
