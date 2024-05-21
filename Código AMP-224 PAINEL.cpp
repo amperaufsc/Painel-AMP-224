@@ -213,12 +213,12 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", speed); //Velocidade
+          myNex.writeNum("n7.val", speed); //Velocidade
           map_speed = map(speed, 0, 100, 315, 225);
-          myNex.writeNum("z0.val", map_speed);
-          myNex.writeNum("n7.val", RPM);//rpm motor
+          myNex.writeNum("z1.val", map_speed);
+          myNex.writeNum("n6.val", RPM);//rpm motor
           map_rpm = map(RPM, 0, 6000, 315, 225);
-          myNex.writeNum("z1.val", map_rpm);
+          myNex.writeNum("z0.val", map_rpm);
           myNex.writeNum("j1.val", bse);
           myNex.writeNum("j0.val", apps);
 
