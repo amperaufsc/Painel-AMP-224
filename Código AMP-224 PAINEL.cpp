@@ -30,7 +30,7 @@ portMUX_TYPE selectorMux = portMUX_INITIALIZER_UNLOCKED;
 
 
 //Declaração das variáveis
-uint16_t power = 0, SelectorPosition, bse = 0, lastPosition = 0, accumulatorTemp, apps = 0, RTD, REGEN = 0, GPS, motorTemp, lowVoltage, StateofCharge, fault_bms, fault_inv, fault_ecu, inversorVoltage, RPM;
+uint16_t motor_current = 0, power = 0, SelectorPosition, bse = 0, lastPosition = 0, accumulatorTemp, apps = 0, RTD, REGEN = 0, GPS, motorTemp, lowVoltage, StateofCharge, fault_bms, fault_inv, fault_ecu, inversorVoltage, RPM;
 float speed = 0, highVoltage; // revisao das variaveis a serem mostradas
 long double accumulatorCurrent;
 int CurrentForm = 0; // variavel para controle da página atual
@@ -230,10 +230,10 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n7.val", speed); //Velocidade
-          map_speed = map(speed, 0, 100, 315, 225);
+          map_speed = map(speed, 0, 100, 0, 270);
           myNex.writeNum("z1.val", map_speed);
           myNex.writeNum("n6.val", RPM);//rpm motor
-          map_rpm = map(RPM, 0, 6000, 315, 225);
+          map_rpm = map(RPM, 0, 6000, 0, 270);
           myNex.writeNum("z0.val", map_rpm);
           myNex.writeNum("j1.val", bse);
           myNex.writeNum("j0.val", apps);
@@ -247,7 +247,7 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n6.val", speed); //Velocidade
-          map_speed = map(speed, 0, 100, 315, 225);
+          map_speed = map(speed, 0, 100, 0, 270);
           myNex.writeNum("z1.val", map_speed);
           myNex.writeNum("n7.val", accumulatorTemp); //Temperatura Acumulador
           if (accumulatorTemp > 60) {
@@ -293,6 +293,7 @@ void Task3code (void * pvParameters)
     case 0x0B1:
         motorTemp = (message1.data[3] << 8 | message1.data[2]);
         RPM = (message1.data[1] << 8 | message1.data[0]);
+        motor_current = (message1.data[5] << 8 | message1.data[4]);
       break;
     case 0x0B2:
         inversorVoltage = (message1.data[2] << 8 | message1.data[1])/100;
