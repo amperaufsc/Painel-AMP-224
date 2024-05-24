@@ -235,8 +235,8 @@ void Task2code( void * pvParameters )
           myNex.writeNum("n6.val", RPM);//rpm motor
           map_rpm = map(RPM, 0, 6000, 0, 270);
           myNex.writeNum("z0.val", map_rpm);
-          myNex.writeNum("j1.val", bse);
-          myNex.writeNum("j0.val", apps);
+          myNex.writeNum("j0.val", bse);
+          myNex.writeNum("j1.val", apps);
 
         break;
         case 3: //Enduro
@@ -322,12 +322,18 @@ void Task3code (void * pvParameters)
       if (ebs = true){
           digitalWrite(EBS_PIN, HIGH);
         }
+      else {
+          digitalWrite(EBS_PIN, LOW);
+      }
       break;
     case 0x014:
       fault_dl = message1.data[0];
       if (fault_dl = true){
           digitalWrite(FAULT_DL_PIN, HIGH);
         }
+      else {
+          digitalWrite(FAULT_DL_PIN, LOW);
+      }
     case 0x1806E5F4:
       Serial.println(message1.data[4]);
       //Serial.println("recebendo carregador");
