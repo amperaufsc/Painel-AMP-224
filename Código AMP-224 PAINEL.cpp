@@ -61,6 +61,7 @@ EasyNex myNex(Serial2); //definir o Serial2 como serial do display
 TaskHandle_t Task1 = NULL;
 TaskHandle_t Task2 = NULL;
 TaskHandle_t Task3 = NULL;
+TaskHandle_t Task4 = NULL;
 
 
 void setupCan(){
@@ -334,18 +335,21 @@ void Task3code (void * pvParameters)
       else {
           digitalWrite(FAULT_DL_PIN, LOW);
       }
-    case 0x1806E5F4:
-      Serial.println(message1.data[4]);
-      //Serial.println("recebendo carregador");
     default:
       break;}
     
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
+}
+}
 
+void Task4code (void * pvParameters)
+{
+  while(1) 
+  {
     //Envia a mensagem
     can_message_t message2;
     //Serial.println("mandandoCAN");
-    message2.identifier = 0x010;         // CAN message identifier
+    message2.identifier = 0x0C8;         // CAN message identifier
     message2.data_length_code = 6;       // CAN message data length - 6 bytes
     message2.data[0] = (botao | SelectorPosition << 5);
     message2.data[1] = (month);
@@ -354,7 +358,7 @@ void Task3code (void * pvParameters)
     message2.data[4] = (minute);
     message2.data[5] = (sec);
     can_transmit(&message2, pdMS_TO_TICKS(10));
-    vTaskDelay(1 / portTICK_PERIOD_MS); 
+    vTaskDelay(50 / portTICK_PERIOD_MS); 
 }
 }
 
@@ -410,6 +414,16 @@ void SetupTasks(){
                     NULL,                     // parameter of the task 
                     0,                        // priority of the task 
                     &Task3,                   // Task handle to keep track of created task 
+                    tskNO_AFFINITY);          // lets the RTOS decide the core
+
+   xTaskCreatePinnedToCore
+  (
+                    Task4code,                // Task function. 
+                    "Task4",                  // name of task. 
+                    10000,                    // Stack size of task 
+                    NULL,                     // parameter of the task 
+                    0,                        // priority of the task 
+                    &Task4,                   // Task handle to keep track of created task 
                     tskNO_AFFINITY);          // lets the RTOS decide the core
 
 }
