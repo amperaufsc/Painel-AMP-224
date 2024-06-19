@@ -101,13 +101,13 @@ void Task1code( void * pvParameters ) //task do seletor
       {
         myNex.writeStr("page page0");
         CurrentForm = 0;
-        Serial.print("page0");
+        //Serial.print("page0");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 1)
       {
         myNex.writeStr("page page1");
         CurrentForm = 1;
-        Serial.print("page1");
+        //Serial.print("page1");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 2)
       {
@@ -119,13 +119,13 @@ void Task1code( void * pvParameters ) //task do seletor
       {
         myNex.writeStr("page page3");
         CurrentForm = 3;
-        Serial.print("page3");
+        //Serial.print("page3");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 4)
       {
         myNex.writeStr("page page4");
         CurrentForm = 4;
-        Serial.print("page4");
+        //Serial.print("page4");
       }
       display_lock = true;
     }
@@ -169,7 +169,7 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          Serial.println(sec);
+          //Serial.println(sec);
         break;
         case 1: //Testes
           vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -178,8 +178,8 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", highVoltage); //Tensão
-          myNex.writeNum("n7.val", inversorVoltage); //Tensão Inversão
+          myNex.writeNum("n6.val", inv_temp); //Temperatura inversor
+          myNex.writeNum("n7.val", inversorVoltage); //Tensão Inversor
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
             if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
