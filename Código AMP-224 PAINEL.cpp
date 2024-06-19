@@ -40,7 +40,7 @@ bool display_lock = false; // false: pode mudar a página, true: nao pode mudar 
 bool botao = false; // rtd eh inicialmente low
 bool ebs = false; // ebs manda booleana
 bool fault_dl = false; // emergencia manda booleana
-uint16_t map_speed, map_rpm;
+uint16_t map_speed, map_rpm, inv_temp;
 
 #define REGEN_PIN GPIO_NUM_15
 portMUX_TYPE REGENbutton = portMUX_INITIALIZER_UNLOCKED;
@@ -202,7 +202,7 @@ void Task2code( void * pvParameters )
             else{
               myNex.writeNum("n11.pco", 24122);
             }
-          myNex.writeNum("n12.val", accumulatorCurrent); //Corrente Acumulador
+          myNex.writeNum("n12.val", motor_current); //Corrente Motor
           myNex.writeNum("n13.val", StateofCharge); //SOC
             if (StateofCharge < 20) {
               myNex.writeNum("n13.pco", 63488);
@@ -289,15 +289,16 @@ void Task3code (void * pvParameters)
     case 0x0B0:
         fault_inv = message1.data[0];
         fault_ecu = (message1.data[2] << (8) | message1.data[1]);
+        inv_temp = (message1.data[5] << (8) | message1.data[4])/10;
         //Serial.println("JESUS");
       break;
     case 0x0B1:
-        motorTemp = (message1.data[3] << 8 | message1.data[2]);
+        motorTemp = (message1.data[3] << 8 | message1.data[2])/10;
         RPM = (message1.data[1] << 8 | message1.data[0]);
-        motor_current = (message1.data[5] << 8 | message1.data[4]);
+        motor_current = (message1.data[5] << 8 | message1.data[4])/10;
       break;
     case 0x0B2:
-        inversorVoltage = (message1.data[2] << 8 | message1.data[1])/100;
+        inversorVoltage = (message1.data[2] << 8 | message1.data[1])/10;
         apps = message1.data[5];
         bse = message1.data[6];
         speed = (message1.data[4] << 8 | message1.data[3])*(3.6/100);
