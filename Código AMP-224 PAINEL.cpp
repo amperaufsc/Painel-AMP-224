@@ -179,7 +179,7 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n6.val", inv_temp); //Temperatura inversor
-          myNex.writeNum("n7.val", inversorVoltage); //Tensão Inversor
+          myNex.writeNum("n7.val", highVoltage); //HV
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
             if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
@@ -188,7 +188,7 @@ void Task2code( void * pvParameters )
             myNex.writeNum("n8.pco", 24122);
             }
           myNex.writeNum("n9.val", motorTemp); //temperatura Motores
-          myNex.writeNum("n10.val", accumulatorTemp); //Temperatura Acumulador
+          myNex.writeNum("n10.val", inv_temp); //Temperatura Inversor
             if (accumulatorTemp > 60) {
               myNex.writeNum("n10.pco", 63488);
             }
