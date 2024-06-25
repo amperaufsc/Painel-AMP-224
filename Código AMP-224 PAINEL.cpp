@@ -216,7 +216,7 @@ void Task2code( void * pvParameters )
               }
             }
           myNex.writeNum("n14.val", fault_ecu); //Erro ECU
-            if (fault_ecu > 60) {
+            if (fault_ecu != 60) {
               myNex.writeNum("n14.pco", 63488);
             }
             else{
@@ -294,7 +294,7 @@ void Task3code (void * pvParameters)
       break;
     case 0x0B1:
         motorTemp = (message1.data[3] << 8 | message1.data[2])/10;
-        RPM = (message1.data[1] << 8 | message1.data[0]);
+        RPM = (message1.data[1] << 8 | message1.data[0])/10;
         motor_current = (message1.data[5] << 8 | message1.data[4])/10;
       break;
     case 0x0B2:
