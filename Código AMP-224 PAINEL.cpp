@@ -101,13 +101,13 @@ void Task1code( void * pvParameters ) //task do seletor
       {
         myNex.writeStr("page page0");
         CurrentForm = 0;
-        //Serial.print("page0");
+        Serial.print("page0");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 1)
       {
         myNex.writeStr("page page1");
         CurrentForm = 1;
-        //Serial.print("page1");
+        Serial.print("page1");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 2)
       {
@@ -119,7 +119,7 @@ void Task1code( void * pvParameters ) //task do seletor
       {
         myNex.writeStr("page page3");
         CurrentForm = 3;
-        //Serial.print("page3");
+         Serial.print("page3");
       }
     }
   
@@ -171,8 +171,8 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", inv_temp); //Temperatura inversor
-          myNex.writeNum("n7.val", highVoltage); //HV
+          myNex.writeNum("n6.val", highVoltage); //tensao HV
+          myNex.writeNum("n7.val", inversorVoltage); //tensao inversor
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
             if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
@@ -182,7 +182,7 @@ void Task2code( void * pvParameters )
             }
           myNex.writeNum("n9.val", motorTemp); //temperatura Motores
           myNex.writeNum("n10.val", inv_temp); //Temperatura Inversor
-            if (accumulatorTemp > 60) {
+            if (inv_temp > 70) {
               myNex.writeNum("n10.pco", 63488);
             }
             else {
@@ -209,7 +209,7 @@ void Task2code( void * pvParameters )
               }
             }
           myNex.writeNum("n14.val", fault_ecu); //Erro ECU
-            if (fault_ecu != 60) {
+            if (fault_ecu != 0) {
               myNex.writeNum("n14.pco", 63488);
             }
             else{
