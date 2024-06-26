@@ -121,13 +121,6 @@ void Task1code( void * pvParameters ) //task do seletor
         CurrentForm = 3;
         //Serial.print("page3");
       }
-      if (SelectorPosition != CurrentForm && SelectorPosition == 4)
-      {
-        myNex.writeStr("page page4");
-        CurrentForm = 4;
-        //Serial.print("page4");
-      }
-      display_lock = true;
     }
   
   //Acionamento do botão REGEN no volante
@@ -454,7 +447,7 @@ void setup(){
   attachInterrupt(SELECTOR_PIN_5, selector_change, CHANGE);
 
   //ver em qual página ta 
-  if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(digitalRead(SELECTOR_PIN_4))&&(SelectorPosition == 1)){
+  if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(SelectorPosition == 1)){
       SelectorPosition = 0;
       Serial.println(SelectorPosition);}
   if (digitalRead(SELECTOR_PIN_1) == 0){
@@ -466,10 +459,7 @@ void setup(){
   if (digitalRead(SELECTOR_PIN_3) == 0){
       SelectorPosition = 3;
       Serial.println(SelectorPosition);}
-  if (digitalRead(SELECTOR_PIN_4) == 0){
-      SelectorPosition = 4;
-      Serial.println(SelectorPosition);}
-
+ 
   SetupTasks();
 }
 
