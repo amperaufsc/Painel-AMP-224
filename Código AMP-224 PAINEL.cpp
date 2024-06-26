@@ -372,9 +372,6 @@ void IRAM_ATTR selector_change(){
     if (digitalRead(SELECTOR_PIN_3) == 0){
       SelectorPosition = 3;
       Serial.println(SelectorPosition);}
-    if (digitalRead(SELECTOR_PIN_4) == 0){
-      SelectorPosition = 4;
-      Serial.println(SelectorPosition);}
     display_lock = false; // lock the display from changing pages
   portEXIT_CRITICAL_ISR(&selectorMux);
 }
