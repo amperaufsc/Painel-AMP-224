@@ -435,6 +435,8 @@ void setup(){
   pinMode (SELECTOR_PIN_4, INPUT_PULLUP); 
   pinMode (SELECTOR_PIN_5, INPUT_PULLUP);
   pinMode (REGEN_PIN, INPUT_PULLDOWN);
+  pinMode (EBS_PIN, INPUT_PULLDOWN);
+  pinMode (FAULT_DL_PIN, INPUT_PULLDOWN);
   
   //Declaração das interrupções
   attachInterrupt(SELECTOR_PIN_1, selector_change, CHANGE);
