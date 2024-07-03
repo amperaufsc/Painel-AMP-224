@@ -197,7 +197,7 @@ void Task2code( void * pvParameters ) //task botao e display
             else{
               myNex.writeNum("n11.pco", 24122);
             }
-          myNex.writeNum("n12.val", motor_current);
+          myNex.writeNum("n12.val", accumulatorCurrent);
           myNex.writeNum("n13.val", StateofCharge); 
             if (StateofCharge < 20) {
               myNex.writeNum("n13.pco", 63488);
