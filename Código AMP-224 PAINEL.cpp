@@ -313,17 +313,8 @@ void Task3code (void * pvParameters) //task recebimento can
       break;
     case 0x677:
         accumulatorTemp = message1.data[0];
-      break;
-    case 0x011:
-      ebs = message1.data[0];
-      if (ebs = true){
-          digitalWrite(EBS_PIN, HIGH);
-        }
-      else {
-          digitalWrite(EBS_PIN, LOW);
-      }
-      break;
-    case 0x014:
+      break;-
+    case 0x0A1:
       fault_dl = message1.data[0];
       if (fault_dl = true){
           digitalWrite(FAULT_DL_PIN, HIGH);
