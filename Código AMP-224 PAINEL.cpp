@@ -289,7 +289,7 @@ void Task3code (void * pvParameters) //task recebimento can
       break;
     case 0x0B1:
         motorTemp = (message1.data[3] << 8 | message1.data[2])/10;
-        RPM = (message1.data[1] << 8 | message1.data[0])/10;
+        RPM = (message1.data[1] << 8 | message1.data[0]);
         motor_current = (message1.data[5] << 8 | message1.data[4])/10;
       break;
     case 0x0B2:
