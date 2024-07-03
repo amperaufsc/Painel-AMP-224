@@ -183,6 +183,12 @@ void Task2code( void * pvParameters ) //task botao e display
             myNex.writeNum("n8.pco", 24122);
             }
           myNex.writeNum("n9.val", motorTemp); 
+            if (motorTemp > 70) {
+              myNex.writeNum("n9.pco", 63488);
+            }
+            else {
+              myNex.writeNum("n9.pco", 24122);
+            }
           myNex.writeNum("n10.val", inv_temp); 
             if (inv_temp > 70) {
               myNex.writeNum("n10.pco", 63488);
@@ -198,6 +204,12 @@ void Task2code( void * pvParameters ) //task botao e display
               myNex.writeNum("n11.pco", 24122);
             }
           myNex.writeNum("n12.val", accumulatorCurrent);
+            if (accumulatorCurrent > 30) {
+              myNex.writeNum("n12.pco", 65504	);
+            }
+            else {
+              myNex.writeNum("n12.pco", 24122);
+            }
           myNex.writeNum("n13.val", StateofCharge); 
             if (StateofCharge < 20) {
               myNex.writeNum("n13.pco", 63488);
