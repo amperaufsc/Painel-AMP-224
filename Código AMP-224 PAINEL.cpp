@@ -178,11 +178,9 @@ void Task2code( void * pvParameters )
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
             if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
-            myNex.writeNum("t2.val", Henrique Pereira)
             }
             else {
             myNex.writeNum("n8.pco", 24122);
-             myNex.writeNum("t2.val", BMS FAULT)
             }
           myNex.writeNum("n9.val", motorTemp); //temperatura Motores
           myNex.writeNum("n10.val", inv_temp); //Temperatura Inversor
@@ -361,14 +359,14 @@ void Task5code (void * pvParameters)
     //Envia a mensagem
     can_message_t message3;
     //Serial.println("mandandoCAN");
-    message2.identifier = 0xFFF;         // CAN message identifier
-    message2.data_length_code = 5;       // CAN message data length - 5 bytes
-    message2.data[0] = (month);
-    message2.data[1] = (day);
-    message2.data[2] = (hour);
-    message2.data[3] = (minute);
-    message2.data[4] = (sec);
-    can_transmit(&message2, pdMS_TO_TICKS(100));
+    message3.identifier = 0xFFF;         // CAN message identifier
+    message3.data_length_code = 5;       // CAN message data length - 5 bytes
+    message3.data[0] = (month);
+    message3.data[1] = (day);
+    message3.data[2] = (hour);
+    message3.data[3] = (minute);
+    message3.data[4] = (sec);
+    can_transmit(&message3, pdMS_TO_TICKS(100));
     vTaskDelay(500 / portTICK_PERIOD_MS); 
 }
 }
