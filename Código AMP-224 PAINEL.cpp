@@ -2,6 +2,8 @@
 //Analista Responsável - Guilherme Lettmann Penha
 //Head - Tomas Carrasco Ferrarezi 
 //Diretor - Marina Grisotti
+//Projetista - Lucas Paiva
+
 
 #include <Arduino.h>
 #include <stdlib.h>
@@ -12,14 +14,14 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "driver/can.h"
-#include "EasyNextionLibrary.h" 
+#include "EasyNextionLibrary.h" //Library do Display
 
 //Configuração chave seletora
 #define SELECTOR_PIN_1 GPIO_NUM_23
 #define SELECTOR_PIN_2 GPIO_NUM_22
 #define SELECTOR_PIN_3 GPIO_NUM_19
 #define SELECTOR_PIN_4 GPIO_NUM_21
-#define SELECTOR_PIN_5 GPIO_NUM_18 
+#define SELECTOR_PIN_5 GPIO_NUM_18 // mudei os pinos
 portMUX_TYPE selectorMux = portMUX_INITIALIZER_UNLOCKED;
 
 //Configuracao pinos Falha Driverless
@@ -29,20 +31,20 @@ portMUX_TYPE selectorMux = portMUX_INITIALIZER_UNLOCKED;
 
 //Declaração das variáveis
 uint16_t motor_current = 0, power = 0, SelectorPosition, bse = 0, lastPosition = 0, accumulatorTemp, apps = 0, RTD, REGEN = 0, GPS, motorTemp, lowVoltage, StateofCharge, fault_bms, fault_inv, fault_ecu, inversorVoltage, RPM;
-float speed = 0, highVoltage; 
+float speed = 0, highVoltage; // revisao das variaveis a serem mostradas
 long double accumulatorCurrent;
-int CurrentForm = 0; 
-int period = 100; 
-unsigned long time_now = 0; 
-bool display_lock = false; 
-bool botao = false; 
-bool ebs = false; 
-bool fault_dl = false; 
+int CurrentForm = 0; // variavel para controle da página atual
+int period = 100; // tempo entre envio de dados para o display
+unsigned long time_now = 0; // variavel para controle de envio de dados para o display
+bool display_lock = false; // false: pode mudar a página, true: nao pode mudar a página
+bool botao = false; // rtd eh inicialmente low
+bool ebs = false; // ebs manda booleana
+bool fault_dl = false; // emergencia manda booleana
 uint16_t map_speed, map_rpm, inv_temp;
 
-//COnfiguracao pinos can e rtd
 #define REGEN_PIN GPIO_NUM_15
 portMUX_TYPE REGENbutton = portMUX_INITIALIZER_UNLOCKED;
+
 #define CAN_TX_PIN GPIO_NUM_17
 #define CAN_RX_PIN GPIO_NUM_16
 
@@ -53,7 +55,7 @@ uint8_t hour = 0;
 uint8_t minute = 0;
 uint8_t sec = 0;
 
-EasyNex myNex(Serial2); 
+EasyNex myNex(Serial2); //definir o Serial2 como serial do display
 
 //Declaração das tarefas
 TaskHandle_t Task1 = NULL;
@@ -69,7 +71,7 @@ void setupCan(){
   can_filter_config_t f_config;
   f_config.acceptance_code = (0x7FF << 21);
   f_config.acceptance_mask = ~(0x020 << 21);
-  f_config.single_filter = false;
+  f_config.single_filter = true;
 
   
   if(can_driver_install(&g_config, &t_config, &f_config) == ESP_OK){
@@ -85,18 +87,17 @@ void setupCan(){
 /*
   functions of each task
   TASK1 -> CITEX selector and regen button handling
-  TASK2 -> update display and regen button handling
-  TASK3 -> CAN receiving
+  TASK2 -> update display
+  TASK3 -> CAN reception
   TASK4 -> CAN sending
-  TASK5 -> CAN RTC sending
-
+  TASK5 -> RTC CAN sending
 */
 
 void Task1code( void * pvParameters ) //task do seletor
 {
   while(1)
   {
-    vTaskDelay(400 / portTICK_PERIOD_MS);
+    //vTaskDelay(400 / portTICK_PERIOD_MS);
     //Mudança da chave seletora
     if (display_lock == false){ 
       if (SelectorPosition != CurrentForm && SelectorPosition == 0)
@@ -140,19 +141,18 @@ void Task1code( void * pvParameters ) //task do seletor
 }
 
 
-void Task2code( void * pvParameters ) //task botao e display
+void Task2code( void * pvParameters )
 {
   while(1)
-  { if (digitalRead(REGEN_PIN)==HIGH) {
+  { 
+    if (digitalRead(REGEN_PIN)==HIGH) {
       botao = HIGH;
-      //Serial.println("botao acionado");
-      
     }
-  else { botao = LOW;
-      
+  else { 
+    botao = LOW;  
   }
     //Atualização dos objetos do painel
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    //  vTaskDelay(10 / portTICK_PERIOD_MS);
     //Serial.println("------------Entrou 2----------------");
     if (millis() >= time_now + period){ //update display variables every 100 miliseconds 
       time_now += period;
@@ -167,50 +167,40 @@ void Task2code( void * pvParameters ) //task botao e display
           //Serial.println(sec);
         break;
         case 1: //Testes
-          vTaskDelay(20 / portTICK_PERIOD_MS);
+          //vTaskDelay(20 / portTICK_PERIOD_MS);
           month = myNex.readNumber("n1.val");
           day = myNex.readNumber("n0.val");
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", highVoltage); 
-          myNex.writeNum("n7.val", inversorVoltage); 
-          myNex.writeNum("n8.val", fault_bms); 
+          myNex.writeNum("n6.val", highVoltage); //tensao HV
+          myNex.writeNum("n7.val", inversorVoltage); //tensao inversor
+          myNex.writeNum("n8.val", fault_bms); //Erro BMS
             if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
+            myNex.writeNum("t2.val", Henrique Pereira)
             }
             else {
             myNex.writeNum("n8.pco", 24122);
+             myNex.writeNum("t2.val", BMS FAULT)
             }
-          myNex.writeNum("n9.val", motorTemp); 
-            if (motorTemp > 70) {
-              myNex.writeNum("n9.pco", 63488);
-            }
-            else {
-              myNex.writeNum("n9.pco", 24122);
-            }
-          myNex.writeNum("n10.val", inv_temp); 
+          myNex.writeNum("n9.val", motorTemp); //temperatura Motores
+          myNex.writeNum("n10.val", inv_temp); //Temperatura Inversor
             if (inv_temp > 70) {
               myNex.writeNum("n10.pco", 63488);
             }
             else {
               myNex.writeNum("n10.pco", 24122);
             }
-          myNex.writeNum("n11.val", fault_inv); 
+          myNex.writeNum("n11.val", fault_inv); //Erro Inversor
             if (fault_inv != 0) {
             myNex.writeNum("n11.pco", 63488);
             }
             else{
               myNex.writeNum("n11.pco", 24122);
             }
-          myNex.writeNum("n12.val", accumulatorCurrent);
-            if (accumulatorCurrent > 30) {
-              myNex.writeNum("n12.pco", 65504	);
-            }
-            else {
-              myNex.writeNum("n12.pco", 24122);
-            }
-          myNex.writeNum("n13.val", StateofCharge); 
+          myNex.writeNum("n12.val", accumulatorCurrent); //Corrente Acumulador
+          myNex.writeNum("n13.val", StateofCharge); //SOC
             if (StateofCharge < 20) {
               myNex.writeNum("n13.pco", 63488);
             }
@@ -222,7 +212,7 @@ void Task2code( void * pvParameters ) //task botao e display
                 myNex.writeNum("n13.pco", 24122);
               }
             }
-          myNex.writeNum("n14.val", fault_ecu); 
+          myNex.writeNum("n14.val", fault_ecu); //Erro ECU
             if (fault_ecu != 0) {
               myNex.writeNum("n14.pco", 63488);
             }
@@ -231,66 +221,60 @@ void Task2code( void * pvParameters ) //task botao e display
             }
         break;
         case 2: //Provas Curtas
-          vTaskDelay(20 / portTICK_PERIOD_MS);
+         // vTaskDelay(20 / portTICK_PERIOD_MS);
           month = myNex.readNumber("n1.val");
           day = myNex.readNumber("n0.val");
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n7.val", speed); 
-          map_speed = map(speed, 0, 100, 0, 270);
+          myNex.writeNum("n7.val", speed); //Velocidade
+          map_speed = map(speed, 0, 100, 0, 180);
           myNex.writeNum("z1.val", map_speed);
-          myNex.writeNum("n6.val", RPM);
-          map_rpm = map(RPM, 0, 6000, 0, 270);
+          myNex.writeNum("n6.val", RPM);//rpm motor
+          map_rpm = map(RPM, 0, 6000, 0, 180);
           myNex.writeNum("z0.val", map_rpm);
           myNex.writeNum("j0.val", bse);
           myNex.writeNum("j1.val", apps);
 
         break;
         case 3: //Enduro
-          vTaskDelay(20 / portTICK_PERIOD_MS);
+        //  vTaskDelay(20 / portTICK_PERIOD_MS);
           month = myNex.readNumber("n1.val");
           day = myNex.readNumber("n0.val");
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", speed); 
-          map_speed = map(speed, 0, 100, 0, 270);
-          myNex.writeNum("z1.val", map_speed);
-          myNex.writeNum("n7.val", accumulatorTemp); 
-          if (accumulatorTemp > 60) {
-              myNex.writeNum("n7.pco", 63488);
+          myNex.writeNum("n7.val", speed); //Velocidade
+          map_speed = map(speed, 0, 100, 0, 180);
+          myNex.writeNum("z0.val", map_speed);
+          myNex.writeNum("n6.val", accumulatorCurrent); //Coreente
+          if (accumulatorTemp > 60 || inv_temp > 70 || motorTemp > 70) {
+              myNex.writeNum("c0.val", 1);
             }
             else {
-              myNex.writeNum("n7.pco", 24122);
+              myNex.writeNum("c0.val", 0);
             }
-          myNex.writeNum("n8.val", StateofCharge); 
            if (StateofCharge < 20) {
-              myNex.writeNum("n8.pco", 63488);
+              myNex.writeNum("c1.val", 1);
             }
-            else{
-              if (digitalRead(REGEN_PIN)==HIGH) {
-                myNex.writeNum("n8.pco", 2016);
-              }
-              else{
-                myNex.writeNum("n8.pco", 24122);
-              }
+            else {
+              myNex.writeNum("c1.val", 0);
             }
         default:
-        break; 
+        break;  
       }
     }
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }
 }
 
-void Task3code (void * pvParameters) //task recebimento can
+void Task3code (void * pvParameters)
 {
   while(1) 
   {
   //Recebe a mensagem
   can_message_t message1;
-  can_receive(&message1, pdMS_TO_TICKS(10));
+  can_receive(&message1, pdMS_TO_TICKS(100));
     switch (message1.identifier)
     {    
     case 0x0B0:
@@ -301,7 +285,7 @@ void Task3code (void * pvParameters) //task recebimento can
       break;
     case 0x0B1:
         motorTemp = (message1.data[3] << 8 | message1.data[2])/10;
-        RPM = (message1.data[1] << 8 | message1.data[0]);
+        RPM = (message1.data[1] << 8 | message1.data[0])/10;
         motor_current = (message1.data[5] << 8 | message1.data[4])/10;
       break;
     case 0x0B2:
@@ -325,8 +309,17 @@ void Task3code (void * pvParameters) //task recebimento can
       break;
     case 0x677:
         accumulatorTemp = message1.data[0];
-      break;-
-    case 0x0A1:
+      break;
+    case 0x011:
+      ebs = message1.data[0];
+      if (ebs = true){
+          digitalWrite(EBS_PIN, HIGH);
+        }
+      else {
+          digitalWrite(EBS_PIN, LOW);
+      }
+      break;
+    case 0x014:
       fault_dl = message1.data[0];
       if (fault_dl = true){
           digitalWrite(FAULT_DL_PIN, HIGH);
@@ -341,7 +334,7 @@ void Task3code (void * pvParameters) //task recebimento can
 }
 }
 
-void Task4code (void * pvParameters) //task envio can
+void Task4code (void * pvParameters)
 {
   while(1) 
   {
@@ -349,34 +342,40 @@ void Task4code (void * pvParameters) //task envio can
     can_message_t message2;
     //Serial.println("mandandoCAN");
     message2.identifier = 0x0C8;         // CAN message identifier
-    message2.data_length_code = 1;       // CAN message data length - 1 byte
+    message2.data_length_code = 1;       // CAN message data length - 6 bytes
     message2.data[0] = (botao | SelectorPosition << 5);
-    can_transmit(&message2, pdMS_TO_TICKS(10));
+    /*message2.data[1] = (month);
+    message2.data[2] = (day);
+    message2.data[3] = (hour);
+    message2.data[4] = (minute);
+    message2.data[5] = (sec);*/
+    can_transmit(&message2, pdMS_TO_TICKS(100));
     vTaskDelay(50 / portTICK_PERIOD_MS); 
 }
 }
 
-void Task5code (void * pvParameters) //task envio RTC no can
+void Task5code (void * pvParameters)
 {
   while(1) 
   {
     //Envia a mensagem
     can_message_t message3;
-    //Serial.println("mandando RTC");
-    message3.identifier = 0x0FF;         // CAN message identifier
-    message3.data_length_code = 5;       // CAN message data length - 5 bytes
-    message3.data[0] = (month);
-    message3.data[1] = (day);
-    message3.data[2] = (hour);
-    message3.data[3] = (minute);
-    message3.data[4] = (sec);
-    can_transmit(&message3, pdMS_TO_TICKS(10));
-    vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    //Serial.println("mandandoCAN");
+    message2.identifier = 0xFFF;         // CAN message identifier
+    message2.data_length_code = 5;       // CAN message data length - 5 bytes
+    message2.data[0] = (month);
+    message2.data[1] = (day);
+    message2.data[2] = (hour);
+    message2.data[3] = (minute);
+    message2.data[4] = (sec);
+    can_transmit(&message2, pdMS_TO_TICKS(100));
+    vTaskDelay(500 / portTICK_PERIOD_MS); 
 }
 }
 
 
-void IRAM_ATTR selector_change(){ //Interrupção responsável pela mudança da chave seletora
+//Interrupção responsável pela mudança da chave seletora
+void IRAM_ATTR selector_change(){
   portENTER_CRITICAL_ISR(&selectorMux);
   //A chave seletora envia nível baixo na posição atual
     if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(digitalRead(SELECTOR_PIN_4))&&(SelectorPosition == 1)){
@@ -435,11 +434,10 @@ void SetupTasks(){
                     0,                        // priority of the task 
                     &Task4,                   // Task handle to keep track of created task 
                     tskNO_AFFINITY);          // lets the RTOS decide the core
-                     
    xTaskCreatePinnedToCore
   (
                     Task5code,                // Task function. 
-                    "Task5",                  // name of task. 
+                    "Task",                  // name of task. 
                     10000,                    // Stack size of task 
                     NULL,                     // parameter of the task 
                     0,                        // priority of the task 
@@ -492,5 +490,5 @@ void setup(){
 }
 
 void loop() {
-  vTaskDelay(100/ portTICK_PERIOD_MS);
+  vTaskDelay(100/ portTICK_PERIOD_MS);  
 }
