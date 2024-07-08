@@ -87,7 +87,8 @@ void setupCan(){
   functions of each task
   TASK1 -> CITEX selector and regen button handling
   TASK2 -> update display
-  TASK3 -> CAN BUS
+  TASK3 -> CAN reception
+  TASK$ -> CAN sending
 */
 
 void Task1code( void * pvParameters ) //task do seletor
@@ -175,9 +176,11 @@ void Task2code( void * pvParameters )
           myNex.writeNum("n8.val", fault_bms); //Erro BMS
             if (fault_bms != 0) {
             myNex.writeNum("n8.pco", 63488);
+            myNex.writeNum("t2.val", Henrique Pereira)
             }
             else {
             myNex.writeNum("n8.pco", 24122);
+             myNex.writeNum("t2.val", BMS FAULT)
             }
           myNex.writeNum("n9.val", motorTemp); //temperatura Motores
           myNex.writeNum("n10.val", inv_temp); //Temperatura Inversor
@@ -223,10 +226,10 @@ void Task2code( void * pvParameters )
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
           myNex.writeNum("n7.val", speed); //Velocidade
-          map_speed = map(speed, 0, 100, 0, 270);
+          map_speed = map(speed, 0, 100, 0, 180);
           myNex.writeNum("z1.val", map_speed);
           myNex.writeNum("n6.val", RPM);//rpm motor
-          map_rpm = map(RPM, 0, 6000, 0, 270);
+          map_rpm = map(RPM, 0, 6000, 0, 180);
           myNex.writeNum("z0.val", map_rpm);
           myNex.writeNum("j0.val", bse);
           myNex.writeNum("j1.val", apps);
@@ -239,30 +242,24 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", speed); //Velocidade
-          map_speed = map(speed, 0, 100, 0, 270);
-          myNex.writeNum("z1.val", map_speed);
-          myNex.writeNum("n7.val", accumulatorTemp); //Temperatura Acumulador
-          if (accumulatorTemp > 60) {
-              myNex.writeNum("n7.pco", 63488);
+          myNex.writeNum("n7.val", speed); //Velocidade
+          map_speed = map(speed, 0, 100, 0, 180);
+          myNex.writeNum("z0.val", map_speed);
+          myNex.writeNum("n6.val", accumulatorCurrent); //Coreente
+          if (accumulatorTemp > 60 || inv_temp > 70 || motorTemp > 70) {
+              myNex.writeNum("c0.val", 1);
             }
             else {
-              myNex.writeNum("n7.pco", 24122);
+              myNex.writeNum("c0.val", 0);
             }
-          myNex.writeNum("n8.val", StateofCharge); //SoC
-            if (digitalRead(REGEN_PIN)==HIGH) {
-                myNex.writeNum("n8.pco", 2016);
-              }
-            else{
-              if (StateofCharge < 20) {
-                myNex.writeNum("n8.pco", 63488);
-              }
-              else{
-                myNex.writeNum("n8.pco", 24122);
-              }
+           if (StateofCharge < 20) {
+              myNex.writeNum("c1.val", 1);
+            }
+            else {
+              myNex.writeNum("c1.val", 0);
             }
         default:
-        break; // tirei o do encoder, add RTC
+        break;  
       }
     }
     vTaskDelay(20 / portTICK_PERIOD_MS);
