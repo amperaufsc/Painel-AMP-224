@@ -278,7 +278,6 @@ void Task3code (void * pvParameters)
     case 0x0B0:
         fault_inv = message1.data[0];
         fault_ecu = (message1.data[2] << (8) | message1.data[1]);
-        inv_temp = (message1.data[5] << (8) | message1.data[4])/10;
         //Serial.println("JESUS");
       break;
     case 0x0B1:
@@ -287,10 +286,10 @@ void Task3code (void * pvParameters)
         motor_current = (message1.data[5] << 8 | message1.data[4])/10;
       break;
     case 0x0B2:
-        inversorVoltage = (message1.data[2] << 8 | message1.data[1])/10;
-        apps = message1.data[5];
-        bse = message1.data[6];
-        speed = (message1.data[4] << 8 | message1.data[3])*(3.6/100);
+        inversorVoltage = (message1.data[1] << 8 | message1.data[0])/10;
+        apps = message1.data[4];
+        bse = message1.data[5];
+        inv_temp = (message1.data[3] << (8) | message1.data[2])/10;
       break;
     case 0x672:
         fault_bms = message1.data[4];
@@ -308,14 +307,8 @@ void Task3code (void * pvParameters)
     case 0x677:
         accumulatorTemp = message1.data[0];
       break;
-    case 0x011:
-      ebs = message1.data[0];
-      if (ebs = true){
-          digitalWrite(EBS_PIN, HIGH);
-        }
-      else {
-          digitalWrite(EBS_PIN, LOW);
-      }
+    case 0x620:
+      speed = (message1.data[3] << (8) | message1.data[2]);
       break;
     case 0x014:
       fault_dl = message1.data[0];
