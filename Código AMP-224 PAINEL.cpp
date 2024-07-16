@@ -62,7 +62,6 @@ TaskHandle_t Task1 = NULL;
 TaskHandle_t Task2 = NULL;
 TaskHandle_t Task3 = NULL;
 TaskHandle_t Task4 = NULL;
-TaskHandle_t Task5 = NULL;
 
 
 void setupCan(){
@@ -88,9 +87,7 @@ void setupCan(){
   functions of each task
   TASK1 -> CITEX selector and regen button handling
   TASK2 -> update display
-  TASK3 -> CAN reception
-  TASK4 -> CAN sending
-  TASK5 -> RTC CAN sending
+  TASK3 -> CAN BUS
 */
 
 void Task1code( void * pvParameters ) //task do seletor
@@ -139,6 +136,7 @@ void Task1code( void * pvParameters ) //task do seletor
   vTaskDelay(30 / portTICK_PERIOD_MS);
   }
 }
+
 
 
 void Task2code( void * pvParameters )
@@ -199,13 +197,13 @@ void Task2code( void * pvParameters )
             }
           myNex.writeNum("n12.val", accumulatorCurrent); //Corrente Acumulador
           myNex.writeNum("n13.val", StateofCharge); //SOC
-            if (StateofCharge < 20) {
-              myNex.writeNum("n13.pco", 63488);
-            }
-            else{
-              if (digitalRead(REGEN_PIN)==HIGH) {
+            if (digitalRead(REGEN_PIN)==HIGH) {
                 myNex.writeNum("n13.pco", 2016);
               }
+            else{
+              if (StateofCharge < 20) {
+              myNex.writeNum("n13.pco", 63488);
+            }
               else{
                 myNex.writeNum("n13.pco", 24122);
               }
@@ -266,6 +264,7 @@ void Task2code( void * pvParameters )
   }
 }
 
+
 void Task3code (void * pvParameters)
 {
   while(1) 
@@ -310,7 +309,7 @@ void Task3code (void * pvParameters)
     case 0x620:
       speed = (message1.data[3] << (8) | message1.data[2]);
       break;
-    case 0x014:
+    case 0x0A1:
       fault_dl = message1.data[0];
       if (fault_dl = true){
           digitalWrite(FAULT_DL_PIN, HIGH);
@@ -333,37 +332,17 @@ void Task4code (void * pvParameters)
     can_message_t message2;
     //Serial.println("mandandoCAN");
     message2.identifier = 0x0C8;         // CAN message identifier
-    message2.data_length_code = 1;       // CAN message data length - 6 bytes
+    message2.data_length_code = 6;       // CAN message data length - 6 bytes
     message2.data[0] = (botao | SelectorPosition << 5);
-    /*message2.data[1] = (month);
+    message2.data[1] = (month);
     message2.data[2] = (day);
     message2.data[3] = (hour);
     message2.data[4] = (minute);
-    message2.data[5] = (sec);*/
+    message2.data[5] = (sec);
     can_transmit(&message2, pdMS_TO_TICKS(100));
     vTaskDelay(50 / portTICK_PERIOD_MS); 
 }
 }
-
-void Task5code (void * pvParameters)
-{
-  while(1) 
-  {
-    //Envia a mensagem
-    can_message_t message3;
-    //Serial.println("mandandoCAN");
-    message3.identifier = 0xFFF;         // CAN message identifier
-    message3.data_length_code = 5;       // CAN message data length - 5 bytes
-    message3.data[0] = (month);
-    message3.data[1] = (day);
-    message3.data[2] = (hour);
-    message3.data[3] = (minute);
-    message3.data[4] = (sec);
-    can_transmit(&message3, pdMS_TO_TICKS(100));
-    vTaskDelay(500 / portTICK_PERIOD_MS); 
-}
-}
-
 
 //Interrupção responsável pela mudança da chave seletora
 void IRAM_ATTR selector_change(){
@@ -424,15 +403,6 @@ void SetupTasks(){
                     NULL,                     // parameter of the task 
                     0,                        // priority of the task 
                     &Task4,                   // Task handle to keep track of created task 
-                    tskNO_AFFINITY);          // lets the RTOS decide the core
-   xTaskCreatePinnedToCore
-  (
-                    Task5code,                // Task function. 
-                    "Task",                  // name of task. 
-                    10000,                    // Stack size of task 
-                    NULL,                     // parameter of the task 
-                    0,                        // priority of the task 
-                    &Task5,                   // Task handle to keep track of created task 
                     tskNO_AFFINITY);          // lets the RTOS decide the core
 
 }
