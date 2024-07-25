@@ -70,16 +70,16 @@ void setupCan(){
   can_filter_config_t f_config;
   f_config.acceptance_code = (0x7FF << 21);
   f_config.acceptance_mask = ~(0x020 << 21);
-  f_config.single_filter = false;
+  f_config.single_filter = true;
 
   
   if(can_driver_install(&g_config, &t_config, &f_config) == ESP_OK){
     // This installs the CAN driver
-    Serial.print("CAN driver installed\n");
+    //Serial.print("CAN driver installed\n");
   }
   if (can_start() == ESP_OK) {
     // This starts the CAN driver
-    Serial.print("CAN driver started\n");
+    //Serial.print("CAN driver started\n");
   }
 }
 
@@ -101,53 +101,53 @@ void Task1code( void * pvParameters ) //task do seletor
       {
         myNex.writeStr("page page0");
         CurrentForm = 0;
-        Serial.print("page0");
+        //Serial.print("page0");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 1)
       {
         myNex.writeStr("page page1");
         CurrentForm = 1;
-        Serial.print("page1");
+        //Serial.print("page1");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 2)
       {
         myNex.writeStr("page page2");
         CurrentForm = 2;
-        Serial.print("page2");
+       // Serial.print("page2");
       }
       if (SelectorPosition != CurrentForm && SelectorPosition == 3)
       {
         myNex.writeStr("page page3");
         CurrentForm = 3;
-         Serial.print("page3");
+        //Serial.print("page3");
       }
+      if (SelectorPosition != CurrentForm && SelectorPosition == 4)
+      {
+        myNex.writeStr("page page4");
+        CurrentForm = 4;
+        Serial.print("page4");
+      }
+      display_lock = true;
     }
-  
+  }
   //Acionamento do botão REGEN no volante
-  /*if (digitalRead(REGEN_PIN)==HIGH) {
-      botao = HIGH;
-      Serial.println("botao acionado");
-      
+  if (digitalRead(REGEN_PIN)==HIGH) {
+      REGEN = 1;
     }
-  else { botao = LOW;
-      
-  }*/
+  else REGEN = 0; 
   
   vTaskDelay(30 / portTICK_PERIOD_MS);
-  }
 }
-
 
 void Task2code( void * pvParameters )
 {
   while(1)
-  { if (digitalRead(REGEN_PIN)==HIGH) {
+  { 
+    if (digitalRead(REGEN_PIN)==HIGH) {
       botao = HIGH;
-      //Serial.println("botao acionado");
-      
     }
-  else { botao = LOW;
-      
+  else { 
+    botao = LOW;  
   }
     //Atualização dos objetos do painel
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -165,7 +165,7 @@ void Task2code( void * pvParameters )
           //Serial.println(sec);
         break;
         case 1: //Testes
-          vTaskDelay(20 / portTICK_PERIOD_MS);
+          //vTaskDelay(20 / portTICK_PERIOD_MS);
           month = myNex.readNumber("n1.val");
           day = myNex.readNumber("n0.val");
           hour = myNex.readNumber("n3.val");
@@ -195,15 +195,15 @@ void Task2code( void * pvParameters )
             else{
               myNex.writeNum("n11.pco", 24122);
             }
-          myNex.writeNum("n12.val", motor_current); //Corrente Motor
+          myNex.writeNum("n12.val", accumulatorCurrent); //Corrente Acumulador
           myNex.writeNum("n13.val", StateofCharge); //SOC
-            if (StateofCharge < 20) {
-              myNex.writeNum("n13.pco", 63488);
-            }
-            else{
-              if (digitalRead(REGEN_PIN)==HIGH) {
+            if (digitalRead(REGEN_PIN)==HIGH) {
                 myNex.writeNum("n13.pco", 2016);
               }
+            else{
+              if (StateofCharge < 20) {
+              myNex.writeNum("n13.pco", 63488);
+            }
               else{
                 myNex.writeNum("n13.pco", 24122);
               }
@@ -223,11 +223,12 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
+          speed = (RPM*50*3*60)/500000;
           myNex.writeNum("n7.val", speed); //Velocidade
-          map_speed = map(speed, 0, 100, 0, 270);
+          map_speed = map(speed, 0, 100, 0, 180);
           myNex.writeNum("z1.val", map_speed);
           myNex.writeNum("n6.val", RPM);//rpm motor
-          map_rpm = map(RPM, 0, 6000, 0, 270);
+          map_rpm = map(RPM, 0, 6000, 0, 180);
           myNex.writeNum("z0.val", map_rpm);
           myNex.writeNum("j0.val", bse);
           myNex.writeNum("j1.val", apps);
@@ -240,35 +241,39 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          myNex.writeNum("n6.val", speed); //Velocidade
-          map_speed = map(speed, 0, 100, 0, 270);
-          myNex.writeNum("z1.val", map_speed);
-          myNex.writeNum("n7.val", accumulatorTemp); //Temperatura Acumulador
-          if (accumulatorTemp > 60) {
-              myNex.writeNum("n7.pco", 63488);
+          speed = (RPM*50*3*60)/500000;
+          myNex.writeNum("n7.val", speed); //Velocidade
+          map_speed = map(speed, 0, 100, 0, 180);
+          myNex.writeNum("z0.val", map_speed);
+          myNex.writeNum("n6.val", accumulatorCurrent); //Coreente
+          if (accumulatorTemp > 60 || inv_temp > 70 || motorTemp > 70) {
+              myNex.writeNum("c0.val", 1);
             }
             else {
-              myNex.writeNum("n7.pco", 24122);
+              myNex.writeNum("c0.val", 0);
             }
-          myNex.writeNum("n8.val", StateofCharge); //SoC
            if (StateofCharge < 20) {
-              myNex.writeNum("n8.pco", 63488);
+              myNex.writeNum("c1.val", 1);
             }
-            else{
-              if (digitalRead(REGEN_PIN)==HIGH) {
-                myNex.writeNum("n8.pco", 2016);
-              }
-              else{
-                myNex.writeNum("n8.pco", 24122);
-              }
+            else {
+              myNex.writeNum("c1.val", 0);
             }
+        break;
+        case 4: // DVLESS
+          vTaskDelay(20 / portTICK_PERIOD_MS);
+          month = myNex.readNumber("n1.val");
+          day = myNex.readNumber("n0.val");
+          hour = myNex.readNumber("n3.val");
+          minute = myNex.readNumber("n4.val");
+          sec = myNex.readNumber("n5.val");
         default:
-        break; // tirei o do encoder, add RTC
+        break;  
       }
     }
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }
 }
+
 
 void Task3code (void * pvParameters)
 {
@@ -282,19 +287,19 @@ void Task3code (void * pvParameters)
     case 0x0B0:
         fault_inv = message1.data[0];
         fault_ecu = (message1.data[2] << (8) | message1.data[1]);
-        inv_temp = (message1.data[5] << (8) | message1.data[4])/10;
         //Serial.println("JESUS");
       break;
     case 0x0B1:
         motorTemp = (message1.data[3] << 8 | message1.data[2])/10;
-        RPM = (message1.data[1] << 8 | message1.data[0])/10;
+        RPM = ((message1.data[1] << 8 | message1.data[0])-1000);
         motor_current = (message1.data[5] << 8 | message1.data[4])/10;
       break;
     case 0x0B2:
-        inversorVoltage = (message1.data[2] << 8 | message1.data[1])/10;
-        apps = message1.data[5];
-        bse = message1.data[6];
-        speed = (message1.data[4] << 8 | message1.data[3])*(3.6/100);
+        inversorVoltage = (message1.data[1] << 8 | message1.data[0])/10;
+        apps = message1.data[4];
+        bse = message1.data[5];
+        inv_temp = (message1.data[3] << (8) | message1.data[2])/10;
+        //Serial.println(apps);
       break;
     case 0x672:
         fault_bms = message1.data[4];
@@ -312,16 +317,7 @@ void Task3code (void * pvParameters)
     case 0x677:
         accumulatorTemp = message1.data[0];
       break;
-    case 0x011:
-      ebs = message1.data[0];
-      if (ebs = true){
-          digitalWrite(EBS_PIN, HIGH);
-        }
-      else {
-          digitalWrite(EBS_PIN, LOW);
-      }
-      break;
-    case 0x014:
+    case 0x0A1:
       fault_dl = message1.data[0];
       if (fault_dl = true){
           digitalWrite(FAULT_DL_PIN, HIGH);
@@ -343,7 +339,7 @@ void Task4code (void * pvParameters)
     //Envia a mensagem
     can_message_t message2;
     //Serial.println("mandandoCAN");
-    message2.identifier = 0x0C8;         // CAN message identifier
+    message2.identifier = 0x777;         // CAN message identifier HYPE
     message2.data_length_code = 6;       // CAN message data length - 6 bytes
     message2.data[0] = (botao | SelectorPosition << 5);
     message2.data[1] = (month);
@@ -357,25 +353,23 @@ void Task4code (void * pvParameters)
 }
 
 //Interrupção responsável pela mudança da chave seletora
+//Interrupção responsável pela mudança da chave seletora
 void IRAM_ATTR selector_change(){
   portENTER_CRITICAL_ISR(&selectorMux);
   //A chave seletora envia nível baixo na posição atual
     if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(digitalRead(SELECTOR_PIN_4))&&(SelectorPosition == 1)){
-      SelectorPosition = 0;
-      Serial.println(SelectorPosition);}
+      SelectorPosition = 0;}
     if (digitalRead(SELECTOR_PIN_1) == 0){
-      SelectorPosition = 1;
-      Serial.println(SelectorPosition);}
+      SelectorPosition = 1;}
     if (digitalRead(SELECTOR_PIN_2) == 0){
-      SelectorPosition = 2;
-      Serial.println(SelectorPosition);}
+      SelectorPosition = 2;}
     if (digitalRead(SELECTOR_PIN_3) == 0){
-      SelectorPosition = 3;
-      Serial.println(SelectorPosition);}
+      SelectorPosition = 3;}
+    if (digitalRead(SELECTOR_PIN_4) == 0){
+      SelectorPosition = 4;}
     display_lock = false; // lock the display from changing pages
   portEXIT_CRITICAL_ISR(&selectorMux);
 }
-
 void SetupTasks(){
   xTaskCreatePinnedToCore
   (
@@ -446,7 +440,7 @@ void setup(){
   attachInterrupt(SELECTOR_PIN_5, selector_change, CHANGE);
 
   //ver em qual página ta 
-  if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(SelectorPosition == 1)){
+  if ((digitalRead(SELECTOR_PIN_1))&&(digitalRead(SELECTOR_PIN_2))&&(digitalRead(SELECTOR_PIN_3))&&(digitalRead(SELECTOR_PIN_4))&&(SelectorPosition == 1)){
       SelectorPosition = 0;
       Serial.println(SelectorPosition);}
   if (digitalRead(SELECTOR_PIN_1) == 0){
@@ -458,10 +452,13 @@ void setup(){
   if (digitalRead(SELECTOR_PIN_3) == 0){
       SelectorPosition = 3;
       Serial.println(SelectorPosition);}
+  if (digitalRead(SELECTOR_PIN_4) == 0){
+      Serial.println(SelectorPosition);
+      SelectorPosition = 4;}
  
   SetupTasks();
 }
 
 void loop() {
-  vTaskDelay(100/ portTICK_PERIOD_MS);
+  vTaskDelay(100/ portTICK_PERIOD_MS);  
 }
