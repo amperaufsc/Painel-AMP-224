@@ -94,7 +94,7 @@ void Task1code( void * pvParameters ) //task do seletor
 {
   while(1)
   {
-    vTaskDelay(400 / portTICK_PERIOD_MS);
+    //vTaskDelay(400 / portTICK_PERIOD_MS);
     //Mudança da chave seletora
     if (display_lock == false){ 
       if (SelectorPosition != CurrentForm && SelectorPosition == 0)
@@ -151,6 +151,7 @@ void Task2code( void * pvParameters )
   }
     //Atualização dos objetos do painel
     vTaskDelay(10 / portTICK_PERIOD_MS);
+    speed = (RPM*50*3*60)/500000;
     //Serial.println("------------Entrou 2----------------");
     if (millis() >= time_now + period){ //update display variables every 100 miliseconds 
       time_now += period;
@@ -223,7 +224,6 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          speed = (RPM*50*3*60)/500000;
           myNex.writeNum("n7.val", speed); //Velocidade
           map_speed = map(speed, 0, 100, 0, 180);
           myNex.writeNum("z1.val", map_speed);
@@ -241,7 +241,6 @@ void Task2code( void * pvParameters )
           hour = myNex.readNumber("n3.val");
           minute = myNex.readNumber("n4.val");
           sec = myNex.readNumber("n5.val");
-          speed = (RPM*50*3*60)/500000;
           myNex.writeNum("n7.val", speed); //Velocidade
           map_speed = map(speed, 0, 100, 0, 180);
           myNex.writeNum("z0.val", map_speed);
