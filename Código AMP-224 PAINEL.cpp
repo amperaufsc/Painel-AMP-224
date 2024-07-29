@@ -2,7 +2,6 @@
 //Analista Responsável - Guilherme Lettmann Penha
 //Head - Tomas Carrasco Ferrarezi 
 //Diretor - Marina Grisotti
-//Projetista - Lucas Paiva
 
 
 #include <Arduino.h>
@@ -38,7 +37,7 @@ int period = 100; // tempo entre envio de dados para o display
 unsigned long time_now = 0; // variavel para controle de envio de dados para o display
 bool display_lock = false; // false: pode mudar a página, true: nao pode mudar a página
 bool botao = false; // rtd eh inicialmente low
-bool ebs = false; // ebs manda booleana
+bool emergency = false; // ebs manda booleana
 bool fault_dl = false; // emergencia manda booleana
 uint16_t map_speed, map_rpm, inv_temp;
 
@@ -127,7 +126,6 @@ void Task1code( void * pvParameters ) //task do seletor
         CurrentForm = 4;
         Serial.print("page4");
       }
-      display_lock = true;
     }
   }
   //Acionamento do botão REGEN no volante
@@ -151,7 +149,6 @@ void Task2code( void * pvParameters )
   }
     //Atualização dos objetos do painel
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    speed = (RPM*50*3*60)/500000;
     //Serial.println("------------Entrou 2----------------");
     if (millis() >= time_now + period){ //update display variables every 100 miliseconds 
       time_now += period;
@@ -292,6 +289,7 @@ void Task3code (void * pvParameters)
         motorTemp = (message1.data[3] << 8 | message1.data[2])/10;
         RPM = ((message1.data[1] << 8 | message1.data[0])-1000);
         motor_current = (message1.data[5] << 8 | message1.data[4])/10;
+        speed = (RPM*50*3*60)/500000;
       break;
     case 0x0B2:
         inversorVoltage = (message1.data[1] << 8 | message1.data[0])/10;
@@ -315,6 +313,15 @@ void Task3code (void * pvParameters)
       break;
     case 0x677:
         accumulatorTemp = message1.data[0];
+      break;
+    case 0x0A0:
+      emergency = message1.data[0];
+      if (fault_dl = true){
+          digitalWrite(EBS_PIN, HIGH);
+        }
+      else {
+          digitalWrite(EBS_PIN, LOW);
+      }
       break;
     case 0x0A1:
       fault_dl = message1.data[0];
@@ -366,7 +373,6 @@ void IRAM_ATTR selector_change(){
       SelectorPosition = 3;}
     if (digitalRead(SELECTOR_PIN_4) == 0){
       SelectorPosition = 4;}
-    display_lock = false; // lock the display from changing pages
   portEXIT_CRITICAL_ISR(&selectorMux);
 }
 void SetupTasks(){
