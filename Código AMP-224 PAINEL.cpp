@@ -2,6 +2,7 @@
 //Analista Responsável - Guilherme Lettmann Penha
 //Head - Tomas Carrasco Ferrarezi 
 //Diretor - Marina Grisotti
+//Projetista - Lucas Paiva
 
 
 #include <Arduino.h>
@@ -93,7 +94,7 @@ void Task1code( void * pvParameters ) //task do seletor
 {
   while(1)
   {
-    //vTaskDelay(400 / portTICK_PERIOD_MS);
+    vTaskDelay(400 / portTICK_PERIOD_MS);
     //Mudança da chave seletora
     if (display_lock == false){ 
       if (SelectorPosition != CurrentForm && SelectorPosition == 0)
@@ -148,7 +149,7 @@ void Task2code( void * pvParameters )
     botao = LOW;  
   }
     //Atualização dos objetos do painel
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     //Serial.println("------------Entrou 2----------------");
     if (millis() >= time_now + period){ //update display variables every 100 miliseconds 
       time_now += period;
